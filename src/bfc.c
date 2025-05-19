@@ -1,9 +1,7 @@
 #include "../include/bfc.h"
 #include <stdio.h>
-#include <stdlib.h>
 #include <wchar.h>
 #include <locale.h>
-#include <stdlib.h>
 #include <string.h>
 
 #define char32 __uint32_t
@@ -23,8 +21,9 @@ int main(int argc, char *argv[]){
     tratar_entrada: Processa a linha entrada como parametro, intera sobre a
                     string tentando converter uma sequência de bytes UTF-8
                     para um caractere largo.
+                    Se o caracter for válido chama 'tratar_caracter'
 */
-void tratar_entrada(char * entradas, int quantidade){
+void tratar_entrada(char ** entradas, int quantidade){
     for(int i = 1; i < quantidade; i++){
         char * comando = entradas[i];
         printf("Analisando: %s\n", entradas[i]);
@@ -60,5 +59,27 @@ void tratar_entrada(char * entradas, int quantidade){
 }
 
 int tratar_caracter(__uint32_t caracter){
-    printf("%lc -> %u\n", (wint_t)caracter, caracter);
+    //printf("\n%lc -> %u ", caracter, caracter);
+    int multiplicador = 0;
+
+    if(caracter%2 != 0){                                        // Caracter é impar
+        caracter = caracter - 1;                                // Traz para o caracter par menor mais proximo
+        //multiplicador++;
+        printf("+");                                            // Adiciona 1 a conversão
+    }
+
+    if(caracter%2 == 0){                                        // Verifica se o caracter é um multiplo de 2
+        unsigned int cociente = caracter;
+        do{                                                     
+            cociente = cociente/2;                              // Encontra o menor cociente par do valor
+            multiplicador++;                                    // Armazena quantas vezes se precisa multiplicar o cociente por 2
+        }while (cociente%2 == 0);
+                                                                // Escreve a equação no formato ">+...[<++..>-]<."
+        printf(">");
+        for(int i = 0; i < cociente; i++) printf("+");          // Escreve o cociente em BF
+        printf("[<");
+        for(int i = 0; i < (1 << multiplicador); i++) printf("+");    // Escreve o valor a se multiplicar o cociente para voltar ao caracter
+        printf(">-]<.>");
+        return 0;
+    }
 }
