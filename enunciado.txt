@@ -1,0 +1,8 @@
+Entrada:
+	echo "Débito=5*3+2" | BFC | BFE
+Saida:
+	Débito=17
+---USAR---
+utf-8
+A conta deve ser feita no BF
+Divisão passar o valor inteiro
