@@ -7,6 +7,7 @@
 
 #define char32 __uint32_t
 #define BUFFER_SIZE 500
+#define MAX_LINE_LENGTH 500
 
 char buffer[BUFFER_SIZE];                 // Buffer para armazenar o código em Brainfuck
 unsigned int buffer_index = 0;              // Indica a primeira posição vazia do buffer
@@ -21,7 +22,19 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    tratar_entrada(argv, argc);
+    if(argc == 1){
+        char linha[MAX_LINE_LENGTH];
+
+        // Loop para ler linhas da entrada padrão até o final do fluxo (EOF)
+        while (fgets(linha, sizeof(linha), stdin) != NULL) {
+            // Remover a quebra de linha, se presente
+            linha[strcspn(linha, "\n")] = 0;
+        }
+
+        tratar_entrada(linha);
+    }else{
+        tratar_entrada(argv[1]);
+    }
     criar_arquivo();
 }
 
@@ -31,35 +44,31 @@ int main(int argc, char *argv[]){
                     para um caractere largo.
                     Se o caracter for válido chama 'tratar_caracter'
 */
-void tratar_entrada(char ** entradas, int quantidade){
-    for(int i = 1; i < quantidade; i++){
-        char * comando = entradas[i];
-        
-        mbstate_t state;                    // Estado de conversão para mbrtowc
-        memset(&state, 0, sizeof(state));   // Inicializa o estado
-        const char *ptr = comando;          // Ponteiro para percorrer a string UTF-8
-        wchar_t wc;                         // Para armazenar o caracter largo convertido
-        size_t byte_processed;              // Número de bytes processados por mbrtowc
+void tratar_entrada(char * comando){
+    mbstate_t state;                    // Estado de conversão para mbrtowc
+    memset(&state, 0, sizeof(state));   // Inicializa o estado
+    const char *ptr = comando;          // Ponteiro para percorrer a string UTF-8
+    wchar_t wc;                         // Para armazenar o caracter largo convertido
+    size_t byte_processed;              // Número de bytes processados por mbrtowc
 
-        while(*ptr != '\0'){
-            byte_processed = mbrtowc(&wc, ptr, strlen(ptr), &state);    // Pega a nova nova sequência de bytes começando em 'ptr' e armazena em 'wc'
+    while(*ptr != '\0'){
+        byte_processed = mbrtowc(&wc, ptr, strlen(ptr), &state);    // Pega a nova nova sequência de bytes começando em 'ptr' e armazena em 'wc'
 
-            switch (byte_processed){
-                default:                            // Conversão bem-sucedida, 'wc' contém um caracter largo
-                    tratar_caracter((char32)wc);
-                    ptr += byte_processed;          // Avança o ponteiro pelo número de bytes processados
-                    break;
+        switch (byte_processed){
+            default:                            // Conversão bem-sucedida, 'wc' contém um caracter largo
+                tratar_caracter((char32)wc);
+                ptr += byte_processed;          // Avança o ponteiro pelo número de bytes processados
+                break;
 
-                case (size_t)-1:
-                    perror("Erro de codificação UTF-8 inválida");
-                    break;
+            case (size_t)-1:
+                perror("Erro de codificação UTF-8 inválida");
+                break;
 
-                case (size_t)-2:
-                    fprintf(stderr, "Sequência UTF-8 incompleta no final da string.\n");
-                    break;
+            case (size_t)-2:
+                fprintf(stderr, "Sequência UTF-8 incompleta no final da string.\n");
+                break;
 
-                case 0: break;                      // Caracter nulo
-            }
+            case 0: break;                      // Caracter nulo
         }
     }
 }
