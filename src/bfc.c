@@ -1,10 +1,17 @@
 #include "../include/bfc.h"
 #include <stdio.h>
+#include <stdlib.h>
 #include <wchar.h>
 #include <locale.h>
 #include <string.h>
 
 #define char32 __uint32_t
+#define BUFFER_SIZE 500
+
+char buffer[BUFFER_SIZE];                 // Buffer para armazenar o código em Brainfuck
+unsigned int buffer_index = 0;              // Indica a primeira posição vazia do buffer
+
+void add_buffer(char * caracter);
 
 int main(int argc, char *argv[]){
     // Configura o locale para suportart UTF-8 pegando a
@@ -15,6 +22,7 @@ int main(int argc, char *argv[]){
     }
 
     tratar_entrada(argv, argc);
+    criar_arquivo();
 }
 
 /*
@@ -26,7 +34,6 @@ int main(int argc, char *argv[]){
 void tratar_entrada(char ** entradas, int quantidade){
     for(int i = 1; i < quantidade; i++){
         char * comando = entradas[i];
-        printf("Analisando: %s\n", entradas[i]);
         
         mbstate_t state;                    // Estado de conversão para mbrtowc
         memset(&state, 0, sizeof(state));   // Inicializa o estado
@@ -54,10 +61,14 @@ void tratar_entrada(char ** entradas, int quantidade){
                 case 0: break;                      // Caracter nulo
             }
         }
-        printf("\n");
     }
 }
 
+/*
+    tratar_caracter: Transforma o caracter entrado em um comando Brainfuck,
+                     adiciona ao buffer o novo seguimento de comando chamando
+                     a função add_buffer.
+*/
 int tratar_caracter(__uint32_t caracter){
     //printf("\n%lc -> %u ", caracter, caracter);
     int multiplicador = 0;
@@ -65,7 +76,7 @@ int tratar_caracter(__uint32_t caracter){
     if(caracter%2 != 0){                                        // Caracter é impar
         caracter = caracter - 1;                                // Traz para o caracter par menor mais proximo
         //multiplicador++;
-        printf("+");                                            // Adiciona 1 a conversão
+        add_buffer("+");                                            // Adiciona 1 a conversão
     }
 
     if(caracter%2 == 0){                                        // Verifica se o caracter é um multiplo de 2
@@ -74,12 +85,26 @@ int tratar_caracter(__uint32_t caracter){
             cociente = cociente/2;                              // Encontra o menor cociente par do valor
             multiplicador++;                                    // Armazena quantas vezes se precisa multiplicar o cociente por 2
         }while (cociente%2 == 0);
-                                                                // Escreve a equação no formato ">+...[<++..>-]<."
-        printf(">");
-        for(int i = 0; i < cociente; i++) printf("+");          // Escreve o cociente em BF
-        printf("[<");
-        for(int i = 0; i < (1 << multiplicador); i++) printf("+");    // Escreve o valor a se multiplicar o cociente para voltar ao caracter
-        printf(">-]<.>");
+        
+        // Escreve a equação no formato ">+...[<++..>-]<."
+        add_buffer(">");
+        for(int i = 0; i < cociente; i++) add_buffer("+");              // Escreve o cociente em BF
+        add_buffer("[<");
+        for(int i = 0; i < (1 << multiplicador); i++) add_buffer("+");  // Escreve o valor a se multiplicar o cociente para voltar ao caracter
+        add_buffer(">-]<.>");
         return 0;
     }
+}
+
+void criar_arquivo(){
+    printf("%s\n", buffer);
+}
+
+void add_buffer(char * caracter){
+    if(buffer_index >= BUFFER_SIZE){    // Se o tamanho do buffer for ecedido encerra o programa
+        printf("Tamanho do buffer ecedido, não foi pocível completar o processo.\n");
+        exit(1);
+    }
+
+    buffer[buffer_index++] = * caracter;
 }
