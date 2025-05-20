@@ -6,5 +6,3 @@ Saida:
 utf-8
 A conta deve ser feita no BF
 Divisão passar o valor inteiro
-
-DébitÝ[O*eU

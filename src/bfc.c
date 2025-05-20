@@ -12,7 +12,7 @@
 char buffer[BUFFER_SIZE];                 // Buffer para armazenar o código em Brainfuck
 unsigned int buffer_index = 0;              // Indica a primeira posição vazia do buffer
 
-void add_buffer(char * caracter);
+void add_buffer(char * caracter, int qtd_carcacter);
 
 int main(int argc, char *argv[]){
     // Configura o locale para suportart UTF-8 pegando a
@@ -84,8 +84,8 @@ int tratar_caracter(__uint32_t caracter){
 
     if(caracter%2 != 0){                                        // Caracter é impar
         caracter = caracter - 1;                                // Traz para o caracter par menor mais proximo
-        //multiplicador++;
-        add_buffer("+");                                            // Adiciona 1 a conversão
+        
+        add_buffer("+", 1);                                     // Adiciona 1 a conversão
     }
 
     if(caracter%2 == 0){                                        // Verifica se o caracter é um multiplo de 2
@@ -96,19 +96,16 @@ int tratar_caracter(__uint32_t caracter){
         }while (cociente%2 == 0);
         
         // Escreve a equação no formato ">+...[<++..>-]<."
-        add_buffer(">");
-        for(int i = 0; i < cociente; i++) add_buffer("+");              // Escreve o cociente em BF
-        add_buffer("[<");
-        for(int i = 0; i < (1 << multiplicador); i++) add_buffer("+");  // Escreve o valor a se multiplicar o cociente para voltar ao caracter
-        add_buffer(">-]<.>");
+        add_buffer(">", 1);
+        for(int i = 0; i < cociente; i++) add_buffer("+", 1);              // Escreve o cociente em BF
+        add_buffer("[<", 2);
+        for(int i = 0; i < (1 << multiplicador); i++) add_buffer("+", 1);  // Escreve o valor a se multiplicar o cociente para voltar ao caracter
+        add_buffer(">-]<.>", 6);
         return 0;
     }
 }
 
-/*
-    saida: Coloca o conteudo do buffer no stdout.
-*/
-void saida(){
+void criar_arquivo(){
     printf("%s\n", buffer);
 }
 
@@ -117,11 +114,14 @@ void saida(){
                 incrementa o buffer_index, se o tamanho do buffer estourar,
                 encerra o programa.
 */
-void add_buffer(char * caracter){
+void add_buffer(char * caracter, int qtd_carcacter){
     if(buffer_index >= BUFFER_SIZE){    // Se o tamanho do buffer for ecedido encerra o programa
         printf("Tamanho do buffer ecedido, não foi pocível completar o processo.\n");
         exit(1);
     }
 
-    buffer[buffer_index++] = * caracter;
+    for(int i = buffer_index, j = 0; buffer_index < qtd_carcacter + i; buffer_index++, j++){
+        buffer[buffer_index] = caracter[j];
+    }
+
 }

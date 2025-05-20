@@ -3,6 +3,6 @@
 
 void tratar_entrada(char * entrada);
 int tratar_caracter(unsigned caracter);
-void saida();
+void criar_arquivo();
 
 #endif
