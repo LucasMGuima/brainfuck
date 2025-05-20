@@ -105,10 +105,18 @@ int tratar_caracter(__uint32_t caracter){
     }
 }
 
-void criar_arquivo(){
+/*
+    saida: Coloca o conteudo do buffer no stdout.
+*/
+void saida(){
     printf("%s\n", buffer);
 }
 
+/*
+    add_buffer: Adiciona a sequencia de caracteres enviados ao buffer,
+                incrementa o buffer_index, se o tamanho do buffer estourar,
+                encerra o programa.
+*/
 void add_buffer(char * caracter){
     if(buffer_index >= BUFFER_SIZE){    // Se o tamanho do buffer for ecedido encerra o programa
         printf("Tamanho do buffer ecedido, não foi pocível completar o processo.\n");
