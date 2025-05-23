@@ -4,12 +4,23 @@
 #include <wchar.h>
 #include <locale.h>
 #include <string.h>
+#include <math.h>
 
+#define TRUE 1
+#define FALSE 0
 #define char32 __uint32_t
 #define BUFFER_SIZE 500
 #define MAX_LINE_LENGTH 500
 
-char buffer[BUFFER_SIZE];                 // Buffer para armazenar o código em Brainfuck
+unsigned int numbers[100];                  // Armazena os números da operação
+char numbers_index = 0;
+char numbers_i = 0;
+int buffer_number = 0;                      // Armazena temporáriamente o número
+int number_size = 0;                        // Armazena o "tamanho" do número
+int tratando_conta = FALSE;                 // Armazena se tratando uma conta
+char operacoes[100];                        // Armazena as operaçãoes
+char operacoes_index;
+char buffer[BUFFER_SIZE];                   // Buffer para armazenar o código em Brainfuck
 unsigned int buffer_index = 0;              // Indica a primeira posição vazia do buffer
 
 void add_buffer(char * caracter, int qtd_carcacter);
@@ -79,29 +90,89 @@ void tratar_entrada(char * comando){
                      a função add_buffer.
 */
 int tratar_caracter(__uint32_t caracter){
-    //printf("\n%lc -> %u ", caracter, caracter);
     int multiplicador = 0;
 
-    if(caracter%2 != 0){                                        // Caracter é impar
-        caracter = caracter - 1;                                // Traz para o caracter par menor mais proximo
-        
-        add_buffer("+", 1);                                     // Adiciona 1 a conversão
-    }
+    // Verifica se uma conta começou
+    if(caracter == '=') tratando_conta = TRUE;
+    // Verifica se uma conta terminou
+    if((caracter < 30 || caracter > 39) && (caracter != '+') 
+        && (caracter != '-') && (caracter != '*') && (caracter != '/')) tratando_conta = FALSE;
+    
+    if(tratando_conta){
+        if(caracter >= 30 && caracter <= 39){
+            buffer_number = buffer_number * pow(10, number_size) + (caracter - 30);
+            number_size++;
+        }else if((caracter == '+') && (caracter == '-') && (caracter == '*') && (caracter == '/')){
+            numbers[numbers_index] = buffer_number;
+            operacoes[operacoes_index] = caracter;
+            number_size = 0;
+            buffer_number = 0;
+            operacoes_index++;
+            numbers_index++;
+        }
+    }else{
+        if(operacoes_index != 0){                                   // Tem uma conta para converter
+            numbers_i = numbers_index;
+            char precedencia[] = {'+', '-', '*', '/'};
+            for(int i=0; i < 4; i++){
+                char operacao = precedencia[i];
+                for(int j=0; j < operacoes_index; j++){
+                    if(operacoes[j] == operacao){
+                        // Converte a operação
+                        if(operacao == '*'){
+                            int num1 = numbers[numbers_i];
+                            numbers_i--;
+                            int num2 = numbers[numbers_i];
+                            numbers_i--;
 
-    if(caracter%2 == 0){                                        // Verifica se o caracter é um multiplo de 2
-        unsigned int cociente = caracter;
-        do{                                                     
-            cociente = cociente/2;                              // Encontra o menor cociente par do valor
-            multiplicador++;                                    // Armazena quantas vezes se precisa multiplicar o cociente por 2
-        }while (cociente%2 == 0);
-        
-        // Escreve a equação no formato ">+...[<++..>-]<."
-        add_buffer(">", 1);
-        for(int i = 0; i < cociente; i++) add_buffer("+", 1);              // Escreve o cociente em BF
-        add_buffer("[<", 2);
-        for(int i = 0; i < (1 << multiplicador); i++) add_buffer("+", 1);  // Escreve o valor a se multiplicar o cociente para voltar ao caracter
-        add_buffer(">-]<.>", 6);
-        return 0;
+                            printf(">");
+                            while(num1 > 0){
+                                printf("+");
+                                num1--;
+                            }
+                            printf("[<");
+                            while(num2 > 0){
+                                printf("+");
+                                num2--;
+                            }
+                            printf(">-]");
+                            continue;
+                        }
+                        if(operacao == '+' || operacao == '-'){
+                            int num = numbers[j];
+                            while(num > 0){
+                                printf("%s", operacao);
+                                num--;
+                            }
+                            continue;
+                        }
+                    }
+                }
+
+            }
+        }
+
+        if(caracter%2 != 0){                                        // Caracter é impar
+            caracter = caracter - 1;                                // Traz para o caracter par menor mais proximo
+            
+            add_buffer("+", 1);                                     // Adiciona 1 a conversão
+        }
+
+        if(caracter%2 == 0){                                        // Verifica se o caracter é um multiplo de 2
+            unsigned int cociente = caracter;
+            do{                                                     
+                cociente = cociente/2;                              // Encontra o menor cociente par do valor
+                multiplicador++;                                    // Armazena quantas vezes se precisa multiplicar o cociente por 2
+            }while (cociente%2 == 0);
+            
+            // Escreve a equação no formato ">+...[<++..>-]<."
+            add_buffer(">", 1);
+            for(int i = 0; i < cociente; i++) add_buffer("+", 1);              // Escreve o cociente em BF
+            add_buffer("[<", 2);
+            for(int i = 0; i < (1 << multiplicador); i++) add_buffer("+", 1);  // Escreve o valor a se multiplicar o cociente para voltar ao caracter
+            add_buffer(">-]<.>", 6);
+            return 0;
+        }
     }
 }
 

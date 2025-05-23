@@ -6,3 +6,8 @@ Saida:
 utf-8
 A conta deve ser feita no BF
 Divisão passar o valor inteiro
+
+numeros 30	- 	39
+		1	-	9
+
+5*4*3: >>+++[<+++++[<++++>-]>-]

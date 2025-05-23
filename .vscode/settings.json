@@ -1,6 +1,7 @@
 {
     "files.associations": {
         "stdlib.h": "c",
-        "bfc.h": "c"
+        "bfc.h": "c",
+        "inttypes.h": "c"
     }
 }
